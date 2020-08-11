@@ -1,0 +1,6 @@
+- !grant
+  role: !group
+  members:
+  - !host /app-01
+  - !host /app-02
+  - !host /app-03

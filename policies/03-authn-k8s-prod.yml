@@ -1,0 +1,9 @@
+- !webservice
+
+- !variable ca/cert
+- !variable ca/key
+
+- !permit
+  resource: !webservice
+  privilege: [ read, authenticate ]
+  role: !group apps

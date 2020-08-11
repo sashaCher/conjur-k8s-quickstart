@@ -1,0 +1,105 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: conjur-cluster
+  labels:
+    app: conjur
+spec:
+  ports:
+    - port: 443
+      name: https
+  selector:
+    app: conjur
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: conjur
+  labels:
+    app: conjur
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: conjur
+      name: conjur
+  template:
+    metadata:
+      labels:
+        app: conjur
+        name: conjur
+    spec:
+      serviceAccountName: conjur
+      volumes:
+      - name: secret-volume
+        secret:
+           secretName: nginx-certs-keys 
+      - name: configmap-volume
+        configMap:
+          name: nginx-configmap 
+      containers:
+        - name: conjur
+          image: cyberark/conjur:latest
+          args: ["server", "-p", "3000"]
+          ports:
+            - containerPort: 3000
+              name: conjur
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          env:
+            - name: CONJUR_DATA_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: conjur-data-key
+                  key: data.key
+            # - name: CONJUR_LOG_LEVEL
+            #   value: debug
+            - name: DATABASE_URL
+              value: postgres://postgres@localhost/postgres
+            - name: CONJUR_AUTHENTICATORS
+              value: authn,authn-k8s/prod
+            - name: CONJUR_ACCOUNT
+              value: myorg
+        - name: nginx
+          image: nginx:latest
+          command: ["nginx"]
+          args: ["-g", "daemon off;"]
+          ports:
+            - containerPort: 443
+              name: https
+          volumeMounts:
+            - mountPath: /etc/nginx/ssl
+              name: secret-volume
+            - mountPath: /etc/nginx/conf.d
+              name: configmap-volume
+          livenessProbe:
+            httpGet:
+              path: /
+              scheme: HTTPS
+              port: https
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              scheme: HTTPS
+              port: https
+            initialDelaySeconds: 30
+            periodSeconds: 10
+        - name: postgres
+          image: postgres:latest
+          env:
+            - name: POSTGRES_HOST_AUTH_METHOD
+              value: trust

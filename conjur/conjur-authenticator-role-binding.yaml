@@ -1,0 +1,13 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: conjur-authenticator-role-binding-conjur
+  namespace: conjur
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: conjur-authenticator-conjur
+subjects:
+  - kind: ServiceAccount
+    name: conjur
+    namespace: conjur

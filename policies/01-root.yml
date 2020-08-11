@@ -1,0 +1,40 @@
+- !policy conjur
+
+- !policy
+  id: secrets
+  body:
+  - !policy
+    id: consumers
+    body:
+    - !group
+
+- !host
+  id: app-01
+  annotations:
+    authn-k8s/prod/namespace: conjur
+    authn-k8s/prod/service-account: default
+    authn-k8s/prod/authentication-container-name: authenticator
+- !host
+  id: app-02
+  annotations:
+    authn-k8s/prod/namespace: theNamespace-02
+    authn-k8s/prod/pod: thePod-02
+    authn-k8s/prod/authentication-container-name: theContainerName-02
+- !host
+  id: app-03
+  annotations:
+    authn-k8s/serviceId/namespace: theNamespace-03
+    authn-k8s/serviceId/deployment: theDeployment-03
+    authn-k8s/serviceId/authentication-container-name: theContainerName-03
+- !host
+  id: app-04
+  annotations:
+    authn-k8s/serviceId/namespace: theNamespace-04
+    authn-k8s/serviceId/deployment_config: theDeploymentConfig-04
+    authn-k8s/serviceId/authentication-container-name: theContainerName-04
+- !host
+  id: app-05
+  annotations:
+    authn-k8s/serviceId/namespace: theNamespace-05
+    authn-k8s/serviceId/stateful_set: theStatefulSet-05
+    authn-k8s/serviceId/authentication-container-name: theContainerName-05

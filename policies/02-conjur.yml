@@ -1,0 +1,7 @@
+- !policy
+  id: authn-k8s/prod
+  body:
+  - !policy
+    id: apps
+    body:
+    - !group

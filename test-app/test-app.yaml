@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: test-app
+  name: test-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-app
+  template:
+    metadata:
+      labels:
+        app: test-app
+    spec:
+      serviceAccountName: default
+      containers:
+      - image: test-app:latest
+        imagePullPolicy: IfNotPresent
+        name: test-app
+        volumeMounts:
+        - mountPath: /run/conjur
+          name: conjur-access-token
+          readOnly: true
+        - mountPath: /opt/conjur_cert
+          name: configmap-volume
+      initContainers:
+      - image: cyberark/conjur-kubernetes-authenticator:latest
+        imagePullPolicy: Always
+        name: authenticator
+        env:
+        - name: CONJUR_VERSION
+          value: "5"
+        - name: CONTAINER_MODE
+          value: init
+        - name: MY_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: MY_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: MY_POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: CONJUR_AUTHN_URL
+          value: https://conjur-cluster.conjur.svc.cluster.local/authn-k8s/prod
+        - name: CONJUR_ACCOUNT
+          value: myorg
+        - name: CONJUR_AUTHN_LOGIN
+          value: host/app-01
+        - name: CONJUR_SSL_CERTIFICATE
+          valueFrom:
+            configMapKeyRef:
+              name: conjur-cert
+              key: ssl-certificate
+        volumeMounts:
+        - mountPath: /run/conjur
+          name: conjur-access-token
+      volumes:
+      - name: conjur-access-token
+        emptyDir:
+          medium: Memory
+      - name: configmap-volume
+        configMap:
+          name: conjur-cert
