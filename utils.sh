@@ -33,7 +33,7 @@ set_namespace() {
     exit -1
   fi
 
-  kubectl config set-context $(oc config current-context) --namespace="$1" > /dev/null
+  kubectl config set-context $(kubectl config current-context) --namespace="$1" > /dev/null
 }
 
 function wait_for_it() {

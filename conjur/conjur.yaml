@@ -32,6 +32,7 @@ spec:
         name: conjur
     spec:
       serviceAccountName: conjur
+      automountServiceAccountToken: false
       volumes:
       - name: secret-volume
         secret:

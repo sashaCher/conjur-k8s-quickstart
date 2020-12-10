@@ -12,6 +12,12 @@ echo "Generating authn-k8s certificate and loading it to the variables..."
 ./generateCertiticate.sh
 kubectl exec $conjur_cli_pod -- conjur variable values add conjur/authn-k8s/prod/ca/key "$(cat k8s.key)"
 kubectl exec $conjur_cli_pod -- conjur variable values add conjur/authn-k8s/prod/ca/cert "$(cat k8s.cert)"
+kubectl exec $conjur_cli_pod -- conjur variable values add conjur/authn-k8s/prod/kubernetes/api-url \
+  "$(kubectl config view --minify -o json | jq -r '.clusters[0].cluster.server')"
+kubectl exec $conjur_cli_pod -- conjur variable values add conjur/authn-k8s/prod/kubernetes/ca-cert \
+  "$(kubectl get secret "$(kubectl get serviceaccounts conjur -o json | jq -r '.secrets[0].name')" -o json | jq -r '.data["ca.crt"]' | base64 --decode)"
+kubectl exec $conjur_cli_pod -- conjur variable values add conjur/authn-k8s/prod/kubernetes/service-account-token \
+  "$(kubectl get secret "$(kubectl get serviceaccounts conjur -o json | jq -r '.secrets[0].name')" -o json | jq -r '.data.token' | base64 --decode)"
 
 echo -n "Enabling authn-k8s/prod authenticator... "
 token=$(kubectl exec $conjur_cli_pod -- conjur authn authenticate -H)

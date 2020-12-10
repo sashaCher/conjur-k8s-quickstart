@@ -2,6 +2,9 @@
 
 - !variable ca/cert
 - !variable ca/key
+- !variable kubernetes/api-url
+- !variable kubernetes/ca-cert
+- !variable kubernetes/service-account-token
 
 - !permit
   resource: !webservice
